@@ -1,13 +1,14 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/api/scripts/:id/views", "destination": "/api/views?id=:id" },
-    { "source": "/api/scripts/:id",        "destination": "/api/script?id=:id" },
-    { "source": "/api/scripts",            "destination": "/api/scripts" },
-    { "source": "/api/stats",              "destination": "/api/stats" },
-    { "source": "/api/admin/login",        "destination": "/api/login" },
-    { "source": "/api/admin/change-password", "destination": "/api/change-password" },
-    { "source": "/api/admin/scripts/:id",  "destination": "/api/script?id=:id" },
-    { "source": "/api/admin/scripts",      "destination": "/api/delete-all" }
+  "routes": [
+    { "src": "/api/scripts/([^/]+)/views", "dest": "/api/views?id=$1" },
+    { "src": "/api/admin/scripts/([^/]+)", "dest": "/api/script?id=$1", "methods": ["PUT", "DELETE"] },
+    { "src": "/api/admin/scripts",          "dest": "/api/delete-all",   "methods": ["DELETE"] },
+    { "src": "/api/admin/login",            "dest": "/api/login" },
+    { "src": "/api/admin/change-password",  "dest": "/api/change-password" },
+    { "src": "/api/scripts/([^/]+)",        "dest": "/api/script?id=$1" },
+    { "src": "/api/scripts",                "dest": "/api/scripts" },
+    { "src": "/api/stats",                  "dest": "/api/stats" },
+    { "src": "/(.*)",                       "dest": "/$1" }
   ]
 }
