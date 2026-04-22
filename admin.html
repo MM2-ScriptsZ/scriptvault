@@ -99,6 +99,13 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.9);backdrop-filt
 .toggle-sl::before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--mt);border-radius:50%;transition:transform .2s,background .2s}
 .toggle input:checked + .toggle-sl{background:var(--red);border-color:var(--red)}
 .toggle input:checked + .toggle-sl::before{transform:translateX(18px);background:#fff}
+
+/* THUMBNAIL PREVIEW */
+.thumb-preview{width:100%;height:140px;border-radius:8px;overflow:hidden;background:var(--sur2);border:1px solid var(--bor);margin-bottom:1rem;display:none;position:relative}
+.thumb-preview img{width:100%;height:100%;object-fit:cover}
+.thumb-preview .thumb-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.75rem;color:var(--mt)}
+.thumb-fetch-btn{background:var(--sur2);color:var(--acc2);border:1px solid rgba(124,58,237,.3);padding:.35rem .9rem;border-radius:6px;font-family:var(--mono);font-size:.75rem;cursor:pointer;margin-top:.4rem;transition:background .15s}
+.thumb-fetch-btn:hover{background:var(--agl)}
 @keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:700px){.dstats{grid-template-columns:1fr 1fr}.fr{grid-template-columns:1fr}}
 </style>
@@ -138,7 +145,11 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.9);backdrop-filt
         <div class="al ae" id="perr"></div>
         <div class="fr">
           <div class="f"><label>Script Title *</label><input type="text" id="pT" placeholder="e.g. Universal ESP"></div>
-          <div class="f"><label>Game Name *</label><input type="text" id="pG" placeholder="e.g. Blox Fruits"></div>
+          <div class="f">
+            <label>Game Name *</label>
+            <input type="text" id="pG" placeholder="e.g. Blox Fruits" oninput="clearThumb()">
+            <button type="button" class="thumb-fetch-btn" onclick="fetchThumb()">🖼 Fetch Game Thumbnail</button>
+          </div>
         </div>
         <div class="fr">
           <div class="f"><label>Category</label>
@@ -148,6 +159,12 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.9);backdrop-filt
             <select id="pSt"><option value="Free">Free</option><option value="Paid">Paid</option><option value="Patched">Patched</option></select>
           </div>
         </div>
+        <div class="thumb-preview" id="pThumbWrap">
+          <div class="thumb-loading" id="pThumbLoad">Fetching thumbnail...</div>
+          <img id="pThumbImg" src="" alt="" style="display:none" onerror="document.getElementById('pThumbWrap').style.display='none'">
+        </div>
+        <input type="hidden" id="pThumbUrl" value="">
+        <input type="hidden" id="pGameId" value="">
         <div class="f"><label>Description *</label><textarea id="pD" placeholder="What does this script do?"></textarea></div>
         <div class="f"><label>Lua Script Code *</label><textarea id="pSc" class="ca" placeholder="-- Paste Lua code here"></textarea></div>
         <div class="lock-row">
@@ -269,15 +286,51 @@ async function loadStats(){
   }catch{}
 }
 function swTab(id,btn){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));document.getElementById('tc-'+id).classList.add('on');btn.classList.add('on');if(id==='manage')renderM();}
+
+async function fetchThumb(){
+  const game = document.getElementById('pG').value.trim();
+  if(!game){showAl('perr','❌ Enter a game name first.');return;}
+  const wrap = document.getElementById('pThumbWrap');
+  const load = document.getElementById('pThumbLoad');
+  const img  = document.getElementById('pThumbImg');
+  wrap.style.display='block';
+  load.style.display='flex';
+  img.style.display='none';
+  try{
+    const r = await fetch(`${API}/api/thumbnail?game=${encodeURIComponent(game)}`);
+    const d = await r.json();
+    if(d.thumbnail){
+      img.src = d.thumbnail;
+      img.style.display='block';
+      load.style.display='none';
+      document.getElementById('pThumbUrl').value = d.thumbnail;
+      document.getElementById('pGameId').value   = d.universeId || '';
+    } else {
+      load.textContent = '⚠️ No thumbnail found for this game';
+    }
+  }catch{
+    load.textContent = '⚠️ Failed to fetch thumbnail';
+  }
+}
+function clearThumb(){
+  document.getElementById('pThumbUrl').value='';
+  document.getElementById('pGameId').value='';
+  document.getElementById('pThumbWrap').style.display='none';
+  document.getElementById('pThumbImg').src='';
+  document.getElementById('pThumbLoad').textContent='Fetching thumbnail...';
+}
 async function postScript(){
   const title=document.getElementById('pT').value.trim(),game=document.getElementById('pG').value.trim();
   const cat=document.getElementById('pC').value,status=document.getElementById('pSt').value;
   const desc=document.getElementById('pD').value.trim(),script=document.getElementById('pSc').value.trim();
+  const locked=document.getElementById('pLk').checked===true;
+  const redirect_url=document.getElementById('pRU').value.trim()||null;
   if(!title||!game||!desc||!script){showAl('perr','❌ Fill in all required fields.');return;}
+  if(locked&&!redirect_url){showAl('perr','❌ Add a redirect URL for the locked script.');return;}
   try{
-    const r=await fetch(`${API}/api/scripts`,{method:'POST',headers:ah(),body:JSON.stringify({title,game,category:cat,status,description:desc,script})});
+    const r=await fetch(`${API}/api/scripts`,{method:'POST',headers:ah(),body:JSON.stringify({title,game,category:cat,status,description:desc,script,locked:locked,redirect_url:locked?redirect_url:null,thumbnail:document.getElementById('pThumbUrl').value||null,roblox_game_id:document.getElementById('pGameId').value||null})});
     const d=await r.json();if(!r.ok)throw new Error(d.error);
-    ['pT','pG','pD','pSc','pRU'].forEach(id=>document.getElementById(id).value='');document.getElementById('pLk').checked=false;document.getElementById('pRU-wrap').style.display='none';
+    ['pT','pG','pD','pSc','pRU','pThumbUrl','pGameId'].forEach(id=>document.getElementById(id).value='');document.getElementById('pThumbWrap').style.display='none';document.getElementById('pThumbImg').src='';document.getElementById('pLk').checked=false;document.getElementById('pRU-wrap').style.display='none';
     showAl('pok','✅ Script published!');loadStats();loadMData();
   }catch(e){showAl('perr','❌ '+(e.message||'Server error'));}
 }
