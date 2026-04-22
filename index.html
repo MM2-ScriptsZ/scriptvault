@@ -76,6 +76,14 @@ select{background:var(--sur);border:1px solid var(--bor);color:var(--tx);font-fa
 .t-patched{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
 .t-new{background:rgba(124,58,237,.15);color:var(--acc2);border:1px solid rgba(124,58,237,.3)}
 .t-locked{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+
+/* THUMBNAIL */
+.card-thumb{width:100%;height:120px;border-radius:8px;overflow:hidden;margin-bottom:.85rem;background:var(--sur2);position:relative}
+.card-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.card:hover .card-thumb img{transform:scale(1.05)}
+.card-thumb .thumb-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;opacity:.3}
+.modal-thumb{width:100%;height:180px;border-radius:10px;overflow:hidden;margin-bottom:1.25rem;background:var(--sur2)}
+.modal-thumb img{width:100%;height:100%;object-fit:cover}
 .ctitle{font-size:1rem;font-weight:700;margin-bottom:.4rem;line-height:1.3}
 .cdesc{font-size:.82rem;color:var(--mt);line-height:1.5;margin-bottom:1rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cfoot{display:flex;align-items:center;justify-content:space-between}
@@ -283,6 +291,7 @@ select{background:var(--sur);border:1px solid var(--bor);color:var(--tx);font-fa
 <div class="ov" id="ov" onclick="clsOv(event)">
   <div class="modal">
     <button class="mcl" onclick="clsOvD()">✕</button>
+    <div id="mthumb" style="display:none" class="modal-thumb"><img id="mthumb-img" src="" alt="" onerror="document.getElementById('mthumb').style.display='none'"></div>
     <div class="mgame" id="mg"></div>
     <div class="mtitle" id="mt"></div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem" id="mta"></div>
@@ -424,6 +433,7 @@ function render(scripts,pages){
           ${s.locked?'<span class="tag t-locked">🔒 Locked</span>':''}
         </div>
       </div>
+      ${s.thumbnail ? `<div class="card-thumb"><img src="${s.thumbnail}" alt="${x(s.game)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\"thumb-placeholder\">🎮</div>'"></div>` : '<div class="card-thumb"><div class="thumb-placeholder">🎮</div></div>'}
       <div class="ctitle">${x(s.title)}</div>
       <div class="cdesc">${x(s.description)}</div>
       <div class="cfoot">
@@ -451,6 +461,7 @@ function fSt(s,b){S.st=s;S.pg=1;document.querySelectorAll('[data-st]').forEach(e
 async function openM(id){
   cur=null;
   document.getElementById('mc').textContent='Loading...';
+  document.getElementById('mthumb').style.display='none';
   document.getElementById('mc').className='mcode';
   ['mv','mto','mw','mdt'].forEach(i=>document.getElementById(i).textContent='—');
   document.getElementById('cht').style.display='none';
@@ -464,6 +475,14 @@ async function openM(id){
     if(!res.ok)throw new Error('Failed to load');
     const s=await res.json();
     cur=s;
+    // Show game thumbnail in modal
+    if(s.thumbnail){
+      document.getElementById('mthumb-img').src=s.thumbnail;
+      document.getElementById('mthumb-img').alt=s.game;
+      document.getElementById('mthumb').style.display='block';
+    } else {
+      document.getElementById('mthumb').style.display='none';
+    }
     document.getElementById('mg').textContent=s.game;
     document.getElementById('mt').textContent=s.title;
     document.getElementById('md').textContent=s.description;
