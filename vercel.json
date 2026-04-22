@@ -9,6 +9,7 @@
     { "src": "/api/scripts/([^/]+)",        "dest": "/api/script?id=$1" },
     { "src": "/api/scripts",                "dest": "/api/scripts" },
     { "src": "/api/stats",                  "dest": "/api/stats" },
+    { "src": "/api/thumbnail",              "dest": "/api/thumbnail" },
     { "src": "/(.*)",                       "dest": "/$1" }
   ]
 }
