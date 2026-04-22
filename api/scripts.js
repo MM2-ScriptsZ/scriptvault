@@ -21,21 +21,22 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // GET — list scripts (never expose script code or redirect_url in list)
+  // GET — list scripts
   if (req.method === 'GET') {
     const { search, category, status, sort = 'newest', page = 1, limit = 9 } = req.query;
-    let query = supabase.from('scripts').select(
-      'id,title,game,category,status,description,views,date,locked', { count: 'exact' }
-    );
+
+    let query = supabase
+      .from('scripts')
+      .select('id,title,game,category,status,description,views,date,locked,redirect_url,thumbnail,roblox_game_id', { count: 'exact' });
 
     if (search) query = query.or(`title.ilike.%${search}%,game.ilike.%${search}%,description.ilike.%${search}%`);
     if (category && category !== 'all') query = query.eq('category', category);
     if (status && status !== 'all') query = query.eq('status', status);
 
-    if (sort === 'newest') query = query.order('date', { ascending: false });
+    if (sort === 'newest')      query = query.order('date', { ascending: false });
     else if (sort === 'oldest') query = query.order('date', { ascending: true });
-    else if (sort === 'views') query = query.order('views', { ascending: false });
-    else if (sort === 'az') query = query.order('title', { ascending: true });
+    else if (sort === 'views')  query = query.order('views', { ascending: false });
+    else if (sort === 'az')     query = query.order('title', { ascending: true });
 
     const pageNum  = Math.max(1, parseInt(page));
     const pageSize = Math.min(50, Math.max(1, parseInt(limit)));
@@ -44,37 +45,47 @@ module.exports = async (req, res) => {
     const { data, count, error } = await query;
     if (error) return res.status(500).json({ error: error.message });
 
+    // Strip script code from list — never expose it in listing
+    const safe = (data || []).map(({ script, ...rest }) => rest);
+
     return res.json({
-      scripts: data,
-      total: count,
+      scripts: safe,
+      total: count || 0,
       page: pageNum,
-      pages: Math.ceil(count / pageSize),
+      pages: Math.ceil((count || 0) / pageSize),
     });
   }
 
-  // POST — create script (admin only)
+  // POST — create new script (admin only)
   if (req.method === 'POST') {
     if (!requireAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
-    const { title, game, category, status, description, script, locked, redirect_url } = req.body;
-    if (!title || !game || !description || !script) return res.status(400).json({ error: 'Missing fields' });
 
-    // Force locked to proper boolean — frontend checkbox can send string
+    const { title, game, category, status, description, script, locked, redirect_url, thumbnail, roblox_game_id } = req.body;
+    if (!title || !game || !description || !script) return res.status(400).json({ error: 'Missing required fields' });
+
+    // Ensure locked is a real boolean
     const isLocked = locked === true || locked === 'true';
+    const redirectUrl = isLocked ? (redirect_url || null) : null;
+
     const { data, error } = await supabase.from('scripts').insert([{
-      id: Date.now(),
-      title, game,
-      category:     category     || 'Other',
-      status:       status       || 'Free',
-      description,  script,
+      id:           Date.now(),
+      title,
+      game,
+      category:     category || 'Other',
+      status:       status   || 'Free',
+      description,
+      script,
       locked:       isLocked,
-      redirect_url: isLocked ? (redirect_url || null) : null,
-      views: 0,
-      date: new Date().toISOString(),
+      redirect_url: redirectUrl,
+      thumbnail:    thumbnail || null,
+      roblox_game_id: roblox_game_id || null,
+      views:        0,
+      date:         new Date().toISOString(),
     }]).select().single();
 
     if (error) return res.status(500).json({ error: error.message });
     return res.status(201).json({ ok: true, script: data });
   }
 
-  res.status(405).json({ error: 'Method not allowed' });
+  return res.status(405).json({ error: 'Method not allowed' });
 };
