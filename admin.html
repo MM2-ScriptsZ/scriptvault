@@ -100,6 +100,27 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.9);backdrop-filt
 .toggle input:checked + .toggle-sl{background:var(--red);border-color:var(--red)}
 .toggle input:checked + .toggle-sl::before{transform:translateX(18px);background:#fff}
 
+
+/* GAME SEARCH DROPDOWN */
+.game-search-wrap{position:relative}
+.game-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--sur);border:1px solid var(--bor);border-radius:10px;z-index:200;max-height:320px;overflow-y:auto;display:none;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.game-dropdown.open{display:block}
+.game-item{display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(42,42,58,.5)}
+.game-item:last-child{border-bottom:none}
+.game-item:hover{background:var(--sur2)}
+.game-item.selected{background:var(--agl);border-left:2px solid var(--acc)}
+.gi-thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--sur2)}
+.gi-thumb-placeholder{width:44px;height:44px;border-radius:8px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.gi-info{flex:1;min-width:0}
+.gi-name{font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gi-meta{font-family:var(--mono);font-size:.68rem;color:var(--mt);margin-top:.15rem}
+.gi-loading{padding:1rem;text-align:center;font-family:var(--mono);font-size:.78rem;color:var(--mt)}
+.gi-none{padding:1rem;text-align:center;font-family:var(--mono);font-size:.78rem;color:var(--mt)}
+.thumb-selected{display:flex;align-items:center;gap:.75rem;padding:.6rem .9rem;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:8px;margin-top:.5rem}
+.thumb-selected img{width:40px;height:40px;border-radius:6px;object-fit:cover}
+.thumb-selected-name{font-size:.85rem;font-weight:700;flex:1}
+.thumb-selected-clear{background:none;border:none;color:var(--mt);cursor:pointer;font-size:1rem;transition:color .15s}
+.thumb-selected-clear:hover{color:var(--red)}
 /* THUMBNAIL PREVIEW */
 .thumb-preview{width:100%;height:140px;border-radius:8px;overflow:hidden;background:var(--sur2);border:1px solid var(--bor);margin-bottom:1rem;display:none;position:relative}
 .thumb-preview img{width:100%;height:100%;object-fit:cover}
@@ -146,9 +167,16 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.9);backdrop-filt
         <div class="fr">
           <div class="f"><label>Script Title *</label><input type="text" id="pT" placeholder="e.g. Universal ESP"></div>
           <div class="f">
-            <label>Game Name *</label>
-            <input type="text" id="pG" placeholder="e.g. Blox Fruits" oninput="clearThumb()">
-            <button type="button" class="thumb-fetch-btn" onclick="fetchThumb()">🖼 Fetch Game Thumbnail</button>
+            <label>Game Name * <span style="font-family:var(--mono);font-size:.68rem;color:var(--mt);font-weight:400">(type to search Roblox games)</span></label>
+            <div class="game-search-wrap">
+              <input type="text" id="pG" placeholder="e.g. riv, blox, pet sim..." autocomplete="off" oninput="onGameSearch(this.value)" onfocus="onGameSearch(this.value)" onblur="setTimeout(closeDropdown,200)">
+              <div class="game-dropdown" id="gameDropdown"></div>
+            </div>
+            <div id="thumbSelected" style="display:none" class="thumb-selected">
+              <img id="thumbSelImg" src="" alt="">
+              <span class="thumb-selected-name" id="thumbSelName"></span>
+              <button class="thumb-selected-clear" onclick="clearGameSelection()" title="Clear">✕</button>
+            </div>
           </div>
         </div>
         <div class="fr">
@@ -158,10 +186,6 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.9);backdrop-filt
           <div class="f"><label>Status</label>
             <select id="pSt"><option value="Free">Free</option><option value="Paid">Paid</option><option value="Patched">Patched</option></select>
           </div>
-        </div>
-        <div class="thumb-preview" id="pThumbWrap">
-          <div class="thumb-loading" id="pThumbLoad">Fetching thumbnail...</div>
-          <img id="pThumbImg" src="" alt="" style="display:none" onerror="document.getElementById('pThumbWrap').style.display='none'">
         </div>
         <input type="hidden" id="pThumbUrl" value="">
         <input type="hidden" id="pGameId" value="">
@@ -287,37 +311,55 @@ async function loadStats(){
 }
 function swTab(id,btn){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));document.getElementById('tc-'+id).classList.add('on');btn.classList.add('on');if(id==='manage')renderM();}
 
-async function fetchThumb(){
-  const game = document.getElementById('pG').value.trim();
-  if(!game){showAl('perr','❌ Enter a game name first.');return;}
-  const wrap = document.getElementById('pThumbWrap');
-  const load = document.getElementById('pThumbLoad');
-  const img  = document.getElementById('pThumbImg');
-  wrap.style.display='block';
-  load.style.display='flex';
-  img.style.display='none';
-  try{
-    const r = await fetch(`${API}/api/thumbnail?game=${encodeURIComponent(game)}`);
-    const d = await r.json();
-    if(d.thumbnail){
-      img.src = d.thumbnail;
-      img.style.display='block';
-      load.style.display='none';
-      document.getElementById('pThumbUrl').value = d.thumbnail;
-      document.getElementById('pGameId').value   = d.universeId || '';
-    } else {
-      load.textContent = '⚠️ No thumbnail found for this game';
-    }
-  }catch{
-    load.textContent = '⚠️ Failed to fetch thumbnail';
-  }
+let searchTimer = null;
+async function onGameSearch(val){
+  const dd = document.getElementById('gameDropdown');
+  if(!val || val.length < 2){ dd.classList.remove('open'); return; }
+  dd.classList.add('open');
+  dd.innerHTML = '<div class="gi-loading">🔍 Searching...</div>';
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async()=>{
+    try{
+      const r = await fetch(`${API}/api/thumbnail?q=${encodeURIComponent(val)}`);
+      const d = await r.json();
+      if(!d.games||!d.games.length){ dd.innerHTML='<div class="gi-none">No games found for "'+val+'"</div>'; return; }
+      dd.innerHTML = d.games.map(g=>`
+        <div class="game-item" onclick="selectGame('${g.id}','${g.name.replace(/'/g,"\\'")}','${g.thumbnail||''}')">
+          ${g.thumbnail
+            ? `<img class="gi-thumb" src="${g.thumbnail}" alt="${g.name}" onerror="this.outerHTML='<div class=\"gi-thumb-placeholder\">🎮</div>'">`
+            : '<div class="gi-thumb-placeholder">🎮</div>'}
+          <div class="gi-info">
+            <div class="gi-name">${g.name}</div>
+            <div class="gi-meta">by ${g.creator} · ${g.playing.toLocaleString()} playing</div>
+          </div>
+        </div>`).join('');
+    }catch{ dd.innerHTML='<div class="gi-none">⚠️ Search failed</div>'; }
+  }, 400);
 }
-function clearThumb(){
+
+function selectGame(id, name, thumbnail){
+  document.getElementById('pG').value = name;
+  document.getElementById('pThumbUrl').value = thumbnail;
+  document.getElementById('pGameId').value = id;
+  closeDropdown();
+  // Show selected badge
+  document.getElementById('thumbSelImg').src = thumbnail;
+  document.getElementById('thumbSelName').textContent = name;
+  document.getElementById('thumbSelected').style.display = thumbnail ? 'flex' : 'none';
+}
+
+function clearGameSelection(){
+  document.getElementById('pG').value='';
   document.getElementById('pThumbUrl').value='';
   document.getElementById('pGameId').value='';
-  document.getElementById('pThumbWrap').style.display='none';
-  document.getElementById('pThumbImg').src='';
-  document.getElementById('pThumbLoad').textContent='Fetching thumbnail...';
+  document.getElementById('thumbSelected').style.display='none';
+  document.getElementById('thumbSelImg').src='';
+  document.getElementById('thumbSelName').textContent='';
+  closeDropdown();
+}
+
+function closeDropdown(){
+  document.getElementById('gameDropdown').classList.remove('open');
 }
 async function postScript(){
   const title=document.getElementById('pT').value.trim(),game=document.getElementById('pG').value.trim();
@@ -330,7 +372,7 @@ async function postScript(){
   try{
     const r=await fetch(`${API}/api/scripts`,{method:'POST',headers:ah(),body:JSON.stringify({title,game,category:cat,status,description:desc,script,locked:locked,redirect_url:locked?redirect_url:null,thumbnail:document.getElementById('pThumbUrl').value||null,roblox_game_id:document.getElementById('pGameId').value||null})});
     const d=await r.json();if(!r.ok)throw new Error(d.error);
-    ['pT','pG','pD','pSc','pRU','pThumbUrl','pGameId'].forEach(id=>document.getElementById(id).value='');document.getElementById('pThumbWrap').style.display='none';document.getElementById('pThumbImg').src='';document.getElementById('pLk').checked=false;document.getElementById('pRU-wrap').style.display='none';
+    ['pT','pG','pD','pSc','pRU','pThumbUrl','pGameId'].forEach(id=>document.getElementById(id).value='');document.getElementById('thumbSelected').style.display='none';document.getElementById('pLk').checked=false;document.getElementById('pRU-wrap').style.display='none';
     showAl('pok','✅ Script published!');loadStats();loadMData();
   }catch(e){showAl('perr','❌ '+(e.message||'Server error'));}
 }
