@@ -311,41 +311,63 @@ async function loadStats(){
 }
 function swTab(id,btn){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));document.getElementById('tc-'+id).classList.add('on');btn.classList.add('on');if(id==='manage')renderM();}
 
+// ── GAME SEARCH ──────────────────────────────────────
 let searchTimer = null;
+let gameResults = []; // store results to avoid quote escaping issues
+
 async function onGameSearch(val){
   const dd = document.getElementById('gameDropdown');
-  if(!val || val.length < 2){ dd.classList.remove('open'); return; }
+  const v = (val||'').trim();
+  if(v.length < 2){ dd.classList.remove('open'); dd.innerHTML=''; return; }
   dd.classList.add('open');
-  dd.innerHTML = '<div class="gi-loading">🔍 Searching...</div>';
+  dd.innerHTML = '<div class="gi-loading">🔍 Searching Roblox...</div>';
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(async()=>{
-    try{
-      const r = await fetch(`${API}/api/thumbnail?q=${encodeURIComponent(val)}`);
-      const d = await r.json();
-      if(!d.games||!d.games.length){ dd.innerHTML='<div class="gi-none">No games found for "'+val+'"</div>'; return; }
-      dd.innerHTML = d.games.map(g=>`
-        <div class="game-item" onclick="selectGame('${g.id}','${g.name.replace(/'/g,"\\'")}','${g.thumbnail||''}')">
-          ${g.thumbnail
-            ? `<img class="gi-thumb" src="${g.thumbnail}" alt="${g.name}" onerror="this.outerHTML='<div class=\"gi-thumb-placeholder\">🎮</div>'">`
-            : '<div class="gi-thumb-placeholder">🎮</div>'}
-          <div class="gi-info">
-            <div class="gi-name">${g.name}</div>
-            <div class="gi-meta">by ${g.creator} · ${g.playing.toLocaleString()} playing</div>
-          </div>
-        </div>`).join('');
-    }catch{ dd.innerHTML='<div class="gi-none">⚠️ Search failed</div>'; }
-  }, 400);
+  searchTimer = setTimeout(()=>doSearch(v), 450);
 }
 
-function selectGame(id, name, thumbnail){
-  document.getElementById('pG').value = name;
-  document.getElementById('pThumbUrl').value = thumbnail;
-  document.getElementById('pGameId').value = id;
+async function doSearch(q){
+  const dd = document.getElementById('gameDropdown');
+  try{
+    const r = await fetch(API+'/api/thumbnail?q='+encodeURIComponent(q));
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d = await r.json();
+    gameResults = d.games || [];
+    if(!gameResults.length){
+      dd.innerHTML='<div class="gi-none">No games found for "'+q+'" — type the full name</div>';
+      return;
+    }
+    dd.innerHTML = gameResults.map((g,i)=>`
+      <div class="game-item" data-idx="${i}" onclick="selectGame(${i})">
+        ${g.thumbnail
+          ? `<img class="gi-thumb" src="${g.thumbnail}" alt="" onerror="this.style.display='none'">`
+          : '<div class="gi-thumb-placeholder">🎮</div>'}
+        <div class="gi-info">
+          <div class="gi-name">${esc(g.name)}</div>
+          <div class="gi-meta">${g.creator?'by '+esc(g.creator):''} ${g.playing>0?'· '+g.playing.toLocaleString()+' playing':''}</div>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    dd.innerHTML='<div class="gi-none">⚠️ Search failed: '+e.message+'</div>';
+  }
+}
+
+function selectGame(idx){
+  const g = gameResults[idx];
+  if(!g) return;
+  document.getElementById('pG').value          = g.name;
+  document.getElementById('pThumbUrl').value   = g.thumbnail || '';
+  document.getElementById('pGameId').value     = g.id || '';
   closeDropdown();
   // Show selected badge
-  document.getElementById('thumbSelImg').src = thumbnail;
-  document.getElementById('thumbSelName').textContent = name;
-  document.getElementById('thumbSelected').style.display = thumbnail ? 'flex' : 'none';
+  if(g.thumbnail){
+    document.getElementById('thumbSelImg').src        = g.thumbnail;
+    document.getElementById('thumbSelName').textContent = g.name;
+    document.getElementById('thumbSelected').style.display = 'flex';
+  } else {
+    document.getElementById('thumbSelName').textContent = g.name;
+    document.getElementById('thumbSelImg').src = '';
+    document.getElementById('thumbSelected').style.display = 'flex';
+  }
 }
 
 function clearGameSelection(){
@@ -355,12 +377,16 @@ function clearGameSelection(){
   document.getElementById('thumbSelected').style.display='none';
   document.getElementById('thumbSelImg').src='';
   document.getElementById('thumbSelName').textContent='';
+  gameResults=[];
   closeDropdown();
 }
 
 function closeDropdown(){
-  document.getElementById('gameDropdown').classList.remove('open');
+  const dd=document.getElementById('gameDropdown');
+  if(dd){ dd.classList.remove('open'); }
 }
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 async function postScript(){
   const title=document.getElementById('pT').value.trim(),game=document.getElementById('pG').value.trim();
   const cat=document.getElementById('pC').value,status=document.getElementById('pSt').value;
