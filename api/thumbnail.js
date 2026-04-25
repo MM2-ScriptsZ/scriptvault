@@ -1,25 +1,30 @@
 /**
  * Roblox Game Search + Thumbnail API
- * 
- * Strategy:
- * 1. Search: Use www.roblox.com/search/games (the actual search page API)
- *    via RoTunnel proxy (replaces roblox.com -> rotunnel.com)
- * 2. Thumbnails: Use thumbnails.rotunnel.com batch endpoint
- * 3. Fallback: Direct roblox.com if proxy fails
- * 
- * RoTunnel: free Roblox proxy, no signup, no rate limits
- * Usage: replace "roblox.com" with "rotunnel.com" in any Roblox API URL
+ *
+ * The old games.roblox.com/v1/games/list?keyword= is PERMANENTLY BROKEN since 2023.
+ * The correct endpoint is: apis.roblox.com/search-api/omni-search?searchQuery=...
+ * This is the actual endpoint Roblox uses on their website and app.
+ *
+ * Proxy: apis.rotunnel.com (replaces apis.roblox.com) for CORS bypass
+ * Thumbnails: thumbnails.rotunnel.com (replaces thumbnails.roblox.com)
  */
 
-const PROXY  = 'rotunnel.com';   // Drop-in replacement for roblox.com
-const DIRECT = 'roblox.com';
+const SESSION_ID = 'scriptvault-search-001'; // any fixed string works
 
-// Helper: fetch with timeout + fallback
-async function safeFetch(url, opts = {}, timeoutMs = 8000) {
+async function safeFetch(url, opts = {}) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const timer = setTimeout(() => controller.abort(), 9000);
   try {
-    const r = await fetch(url, { ...opts, signal: controller.signal });
+    const r = await fetch(url, {
+      ...opts,
+      signal: controller.signal,
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://www.roblox.com/',
+        ...(opts.headers || {}),
+      }
+    });
     clearTimeout(timer);
     return r;
   } catch (e) {
@@ -28,73 +33,73 @@ async function safeFetch(url, opts = {}, timeoutMs = 8000) {
   }
 }
 
-// Search games using the Roblox Games search endpoint via proxy
 async function searchGames(keyword) {
-  const encoded = encodeURIComponent(keyword);
+  const q = encodeURIComponent(keyword);
 
-  // Primary: Use games.rotunnel.com (proxied) with the list endpoint
-  // The keyword search works through the proxy because it handles headers
-  const urls = [
-    `https://games.${PROXY}/v1/games/list?model.keyword=${encoded}&model.startRows=0&model.maxRows=10&model.isKeywordSuggestionEnabled=true`,
-    `https://games.${DIRECT}/v1/games/list?model.keyword=${encoded}&model.startRows=0&model.maxRows=10&model.isKeywordSuggestionEnabled=true`,
+  // Try multiple endpoints in order — stop at first success
+  const attempts = [
+    // 1. New omni-search via RoTunnel proxy
+    `https://apis.rotunnel.com/search-api/omni-search?searchQuery=${q}&sessionId=${SESSION_ID}&pageType=all`,
+    // 2. New omni-search direct
+    `https://apis.roblox.com/search-api/omni-search?searchQuery=${q}&sessionId=${SESSION_ID}&pageType=all`,
+    // 3. Old endpoint via proxy (may still work for some queries)
+    `https://games.rotunnel.com/v1/games/list?model.keyword=${q}&model.maxRows=10`,
   ];
 
-  for (const url of urls) {
+  for (const url of attempts) {
     try {
-      const r = await safeFetch(url, {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Referer': 'https://www.roblox.com/',
-          'Origin': 'https://www.roblox.com',
-        }
-      });
-
-      if (!r.ok) {
-        console.log(`Search failed at ${url}: ${r.status}`);
-        continue;
-      }
+      console.log('Trying:', url);
+      const r = await safeFetch(url);
+      if (!r.ok) { console.log('HTTP', r.status, 'at', url); continue; }
 
       const data = await r.json();
-      const games = data?.games;
-      if (games && games.length > 0) {
-        console.log(`Search succeeded via ${url}, found ${games.length} games`);
-        return games;
+      console.log('Response keys:', Object.keys(data));
+
+      // omni-search response format
+      if (data?.searchResults) {
+        const gameResults = data.searchResults.find(s => s.contentGroupType === 'Game');
+        if (gameResults?.contents?.length) {
+          console.log('omni-search found', gameResults.contents.length, 'games');
+          return { type: 'omni', games: gameResults.contents };
+        }
       }
-      console.log(`Search returned empty at ${url}`);
+
+      // old games/list format
+      if (data?.games?.length) {
+        console.log('games/list found', data.games.length, 'games');
+        return { type: 'list', games: data.games };
+      }
+
+      console.log('Empty result at', url);
     } catch (e) {
-      console.log(`Search error at ${url}: ${e.message}`);
+      console.log('Error at', url, ':', e.message);
     }
   }
 
-  return [];
+  return { type: null, games: [] };
 }
 
-// Get thumbnails for universe IDs in batch
 async function getThumbnails(universeIds) {
   if (!universeIds.length) return {};
   const ids = universeIds.join(',');
 
   const urls = [
-    `https://thumbnails.${PROXY}/v1/games/icons?universeIds=${ids}&returnPolicy=PlaceHolder&size=256x256&format=Png&isCircular=false`,
-    `https://thumbnails.${DIRECT}/v1/games/icons?universeIds=${ids}&returnPolicy=PlaceHolder&size=256x256&format=Png&isCircular=false`,
+    `https://thumbnails.rotunnel.com/v1/games/icons?universeIds=${ids}&returnPolicy=PlaceHolder&size=256x256&format=Png&isCircular=false`,
+    `https://thumbnails.roblox.com/v1/games/icons?universeIds=${ids}&returnPolicy=PlaceHolder&size=256x256&format=Png&isCircular=false`,
   ];
 
   for (const url of urls) {
     try {
-      const r = await safeFetch(url, {
-        headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' }
-      });
+      const r = await safeFetch(url);
       if (!r.ok) continue;
       const data = await r.json();
       const map = {};
       (data?.data || []).forEach(t => { map[String(t.targetId)] = t.imageUrl; });
       if (Object.keys(map).length > 0) return map;
     } catch (e) {
-      console.log(`Thumbnail error at ${url}: ${e.message}`);
+      console.log('Thumb error:', e.message);
     }
   }
-
   return {};
 }
 
@@ -107,10 +112,10 @@ module.exports = async (req, res) => {
 
   const { q, id } = req.query;
 
-  // ── GET THUMBNAIL BY UNIVERSE ID ────────────────────────
+  // ── GET THUMBNAIL BY UNIVERSE ID ONLY ──────────────────
   if (id && !q) {
     try {
-      const map = await getThumbnails([id]);
+      const map = await getThumbnails([String(id)]);
       return res.json({ thumbnail: map[String(id)] || null });
     } catch (e) {
       return res.status(500).json({ error: e.message, thumbnail: null });
@@ -121,36 +126,54 @@ module.exports = async (req, res) => {
   if (!q || q.trim().length < 2) return res.json({ games: [] });
 
   try {
-    const games = await searchGames(q.trim());
+    const { type, games } = await searchGames(q.trim());
 
     if (!games.length) {
-      return res.json({ games: [], message: 'No games found' });
+      return res.json({ games: [], debug: 'No results from any endpoint' });
     }
 
-    // Get universe IDs and fetch all thumbnails in one batch
-    const universeIds = games
-      .map(g => g.universeId)
-      .filter(Boolean)
-      .map(String);
+    // Normalize result format depending on which endpoint worked
+    let normalized = [];
 
+    if (type === 'omni') {
+      // omni-search returns: { universeId, name, creatorName, playerCount, ... }
+      normalized = games.slice(0, 10).map(g => ({
+        universeId: g.universeId,
+        placeId:    g.rootPlaceId || '',
+        name:       g.name || 'Unknown',
+        creator:    g.creatorName || '',
+        playing:    g.playerCount || 0,
+      }));
+    } else {
+      // games/list returns: { universeId, name, creatorName, playerCount, ... }
+      normalized = games.slice(0, 10).map(g => ({
+        universeId: g.universeId,
+        placeId:    g.placeId || '',
+        name:       g.name || 'Unknown',
+        creator:    g.creatorName || '',
+        playing:    g.playerCount || 0,
+      }));
+    }
+
+    // Batch fetch thumbnails
+    const universeIds = normalized.map(g => String(g.universeId)).filter(Boolean);
     const thumbMap = await getThumbnails(universeIds);
 
-    const results = games
+    const results = normalized
       .filter(g => g.universeId)
-      .slice(0, 10)
       .map(g => ({
         id:        String(g.universeId),
         placeId:   String(g.placeId || ''),
-        name:      g.name || 'Unknown',
-        creator:   g.creatorName || '',
-        playing:   g.playerCount || 0,
+        name:      g.name,
+        creator:   g.creator,
+        playing:   g.playing,
         thumbnail: thumbMap[String(g.universeId)] || null,
       }));
 
     return res.json({ games: results });
 
   } catch (e) {
-    console.error('thumbnail.js fatal error:', e.message);
+    console.error('Fatal error:', e.message);
     return res.status(500).json({ error: e.message, games: [] });
   }
 };
