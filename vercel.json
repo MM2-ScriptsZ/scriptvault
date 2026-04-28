@@ -1,15 +1,56 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/api/scripts/([^/]+)/views", "dest": "/api/views?id=$1" },
-    { "src": "/api/admin/scripts/([^/]+)", "dest": "/api/script?id=$1", "methods": ["PUT", "DELETE"] },
-    { "src": "/api/admin/scripts",          "dest": "/api/delete-all",   "methods": ["DELETE"] },
-    { "src": "/api/admin/login",            "dest": "/api/login" },
-    { "src": "/api/admin/change-password",  "dest": "/api/change-password" },
-    { "src": "/api/scripts/([^/]+)",        "dest": "/api/script?id=$1" },
-    { "src": "/api/scripts",                "dest": "/api/scripts" },
-    { "src": "/api/stats",                  "dest": "/api/stats" },
-    { "src": "/api/thumbnail",              "dest": "/api/thumbnail" },
-    { "src": "/(.*)",                       "dest": "/$1" }
+    {
+      "src": "/api/scripts/([^/]+)/views",
+      "dest": "/api/views?id=$1"
+    },
+    {
+      "src": "/api/admin/scripts/([^/]+)",
+      "dest": "/api/script?id=$1",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ]
+    },
+    {
+      "src": "/api/admin/scripts",
+      "dest": "/api/delete-all",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "src": "/api/admin/login",
+      "dest": "/api/login"
+    },
+    {
+      "src": "/api/admin/change-password",
+      "dest": "/api/change-password"
+    },
+    {
+      "src": "/api/scripts/([^/]+)",
+      "dest": "/api/script?id=$1"
+    },
+    {
+      "src": "/api/scripts",
+      "dest": "/api/scripts"
+    },
+    {
+      "src": "/api/stats",
+      "dest": "/api/stats"
+    },
+    {
+      "src": "/api/thumbnail",
+      "dest": "/api/thumbnail"
+    },
+    {
+      "src": "/api/proxy",
+      "dest": "/api/proxy"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
   ]
 }
