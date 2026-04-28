@@ -19,6 +19,28 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.9);backdrop-filt
 .nav-r a.active{color:var(--tx);border-bottom:2px solid var(--acc2);padding-bottom:2px}
 .nav-r .btn{background:var(--acc);color:#fff!important;padding:.4rem 1rem;border-radius:6px;border-bottom:none!important}
 .nav-r .btn:hover{background:var(--acc2)!important}
+/* HAMBURGER */
+.burger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;transition:background .15s}
+.burger:hover{background:var(--sur2)}
+.burger span{display:block;height:2px;border-radius:2px;background:var(--tx);transition:transform .3s,opacity .3s,width .3s}
+.burger span:nth-child(1){width:20px}
+.burger span:nth-child(2){width:14px}
+.burger span:nth-child(3){width:17px}
+.burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);width:20px}
+.burger.open span:nth-child(2){opacity:0;width:0}
+.burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);width:20px}
+/* MOBILE MENU DRAWER */
+.mob-menu{position:fixed;top:60px;left:0;right:0;bottom:0;background:rgba(10,10,15,.97);backdrop-filter:blur(24px);z-index:99;display:flex;flex-direction:column;padding:1.5rem 2rem;gap:.5rem;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);border-top:1px solid var(--bor)}
+.mob-menu.open{transform:translateX(0)}
+.mob-link{display:flex;align-items:center;gap:.75rem;color:var(--mt);text-decoration:none;font-size:1.1rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:1rem .75rem;border-radius:10px;cursor:pointer;transition:background .15s,color .15s;border:none;background:none;width:100%;text-align:left}
+.mob-link:hover{background:var(--sur2);color:var(--tx)}
+.mob-link.active{color:var(--acc2);background:var(--agl)}
+.mob-link .mob-icon{font-size:1.3rem;width:32px;text-align:center}
+.mob-divider{height:1px;background:var(--bor);margin:.5rem 0}
+.mob-admin{background:var(--acc);color:#fff!important;margin-top:.5rem;justify-content:center;border-radius:10px}
+.mob-admin:hover{background:var(--acc2)!important}
+.mob-discord{border:1px solid rgba(88,101,242,.4);color:#7289da!important}
+.mob-discord:hover{background:rgba(88,101,242,.1)!important}
 .page{display:none}.page.active{display:block}
 /* DISCORD BAR */
 .dc-bar{position:relative;z-index:1;background:linear-gradient(90deg,rgba(88,101,242,.15) 0%,rgba(124,58,237,.1) 100%);border-bottom:1px solid rgba(88,101,242,.3);padding:.75rem 2rem}
@@ -164,41 +186,88 @@ select{background:var(--sur);border:1px solid var(--bor);color:var(--tx);font-fa
 .bar:hover .tip{display:block}
 .ax{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.62rem;color:var(--mt);margin-top:.3rem}
 /* LOCK MODAL */
-.lkov{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);z-index:600;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .2s}
+/* LOCK MODAL */
+.lkov{position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(16px);z-index:600;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
 .lkov.open{opacity:1;pointer-events:all}
-.lkbox{background:var(--sur);border:1px solid rgba(239,68,68,.3);border-radius:16px;padding:2.5rem;max-width:420px;width:100%;text-align:center;animation:fadeUp .3s ease both}
-.lkicon{font-size:3rem;margin-bottom:1rem}
-.lkbox h3{font-size:1.3rem;font-weight:800;margin-bottom:.5rem}
-.lkbox p{color:var(--mt);font-size:.88rem;line-height:1.6;margin-bottom:1.75rem}
-.lk-timer{font-family:var(--mono);font-size:.82rem;color:var(--mt);margin-bottom:1.25rem}
-.lk-timer span{color:var(--acc2);font-weight:700;font-size:1rem}
-.lk-progress{width:100%;height:4px;background:var(--sur2);border-radius:2px;margin-bottom:1.5rem;overflow:hidden}
-.lk-bar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;width:100%;transition:width .9s linear}
-.lk-redirect{display:flex;gap:.75rem;justify-content:center}
-.lk-go{background:var(--acc);color:#fff;border:none;padding:.7rem 1.5rem;border-radius:8px;font-family:var(--sans);font-weight:700;font-size:.9rem;cursor:pointer;transition:background .2s}
-.lk-go:hover{background:var(--acc2)}
-.lk-cancel{background:var(--sur2);color:var(--mt);border:1px solid var(--bor);padding:.7rem 1.25rem;border-radius:8px;font-family:var(--sans);font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s}
-.lk-cancel:hover{color:var(--tx)}
+.lkbox{background:var(--sur);border:1px solid var(--bor);border-radius:18px;width:100%;max-width:560px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6);animation:fadeUp .3s ease both}
+.lk-header{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem;border-bottom:1px solid var(--bor);background:var(--sur2)}
+.lk-header-left{display:flex;align-items:center;gap:.6rem}
+.lk-lock-icon{width:28px;height:28px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.lk-header-title{font-size:.95rem;font-weight:800}
+.lk-header-sub{font-family:var(--mono);font-size:.68rem;color:var(--mt);margin-top:.1rem}
+.lk-close{background:none;border:none;color:var(--mt);font-size:1.2rem;cursor:pointer;padding:.2rem .4rem;border-radius:5px;transition:color .15s}
+.lk-close:hover{color:var(--tx)}
+/* IFRAME AREA */
+.lk-frame-wrap{position:relative;width:100%;height:340px;background:var(--sur2);overflow:hidden}
+.lk-frame-wrap iframe{width:100%;height:100%;border:none;display:block}
+.lk-frame-overlay{position:absolute;inset:0;background:var(--sur2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;transition:opacity .4s}
+.lk-frame-overlay.hidden{opacity:0;pointer-events:none}
+.lk-frame-spinner{width:36px;height:36px;border:3px solid var(--bor);border-top-color:var(--acc2);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lk-frame-overlay p{font-family:var(--mono);font-size:.78rem;color:var(--mt)}
+/* XFRAME BLOCKED FALLBACK */
+.lk-blocked{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1rem;padding:2rem;text-align:center}
+.lk-blocked .lk-blocked-icon{font-size:2.5rem}
+.lk-blocked p{color:var(--mt);font-size:.85rem;line-height:1.6}
+.lk-blocked a{color:var(--acc2);text-decoration:none;font-weight:700}
+.lk-blocked a:hover{text-decoration:underline}
+/* FOOTER BAR */
+.lk-footer{padding:.9rem 1.4rem;border-top:1px solid var(--bor);background:var(--sur2)}
+.lk-progress-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}
+.lk-prog-label{font-family:var(--mono);font-size:.72rem;color:var(--mt);white-space:nowrap;min-width:90px}
+.lk-prog-label span{color:var(--acc2);font-weight:700}
+.lk-progress{flex:1;height:5px;background:var(--bor);border-radius:3px;overflow:hidden}
+.lk-bar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:3px;width:100%;transition:width 1s linear}
+.lk-actions{display:flex;gap:.6rem}
+.lk-go{flex:1;background:var(--acc);color:#fff;border:none;padding:.65rem;border-radius:8px;font-family:var(--sans);font-weight:700;font-size:.88rem;cursor:pointer;transition:background .2s;opacity:.4;pointer-events:none}
+.lk-go.ready{opacity:1;pointer-events:all;animation:pulse-btn .6s ease}
+.lk-go:hover.ready{background:var(--acc2)}
+.lk-cancel{background:none;color:var(--mt);border:1px solid var(--bor);padding:.65rem 1.1rem;border-radius:8px;font-family:var(--sans);font-weight:700;font-size:.88rem;cursor:pointer;transition:all .2s}
+.lk-cancel:hover{color:var(--tx);border-color:var(--tx)}
+@keyframes pulse-btn{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
 /* TOAST */
 .toast{position:fixed;bottom:2rem;right:2rem;z-index:1000;background:var(--grn);color:#fff;font-family:var(--mono);font-size:.82rem;padding:.75rem 1.25rem;border-radius:8px;transform:translateY(80px);opacity:0;transition:all .3s}
 .toast.show{transform:translateY(0);opacity:1}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@media(max-width:768px){.wrap{grid-template-columns:1fr}.sidebar{position:static;display:flex;gap:.5rem;flex-wrap:wrap}.sid-sec{margin:0}.sid-title{display:none}.stats{gap:1.5rem}}
+@media(max-width:768px){.wrap{grid-template-columns:1fr}.sidebar{position:static;display:flex;gap:.5rem;flex-wrap:wrap}.sid-sec{margin:0}.sid-title{display:none}.stats{gap:1.5rem}.nav-r{display:none}.burger{display:flex}}
 </style>
+<!-- X-Frame-Bypass: bypasses X-Frame-Options for iframe embedding -->
+<script src="https://unpkg.com/@ungap/custom-elements-builtin"></script>
+<script type="module" src="https://unpkg.com/x-frame-bypass"></script>
 </head>
 <body>
 
 <nav>
-  <a href="javascript:void(0)" class="logo" onclick="showPage('scripts')"><span>[</span>ScriptVault<span>]</span></a>
+  <a href="javascript:void(0)" class="logo" onclick="showPage('scripts');closeMob()"><span>[</span>ScriptVault<span>]</span></a>
   <div class="nav-r">
     <a id="nav-scripts" onclick="showPage('scripts')" class="active">Scripts</a>
     <a id="nav-executors" onclick="showPage('executors')">Executors</a>
     <a href="https://discord.gg/EH95E5Gknn" target="_blank">Discord</a>
     <a href="admin.html" class="btn">Admin</a>
   </div>
+  <button class="burger" id="burger" onclick="toggleMob()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE DRAWER -->
+<div class="mob-menu" id="mobMenu">
+  <button class="mob-link active" id="mob-scripts" onclick="showPage('scripts');closeMob()">
+    <span class="mob-icon">📜</span> Scripts
+  </button>
+  <button class="mob-link" id="mob-executors" onclick="showPage('executors');closeMob()">
+    <span class="mob-icon">⚡</span> Executors
+  </button>
+  <div class="mob-divider"></div>
+  <a class="mob-link mob-discord" href="https://discord.gg/EH95E5Gknn" target="_blank" onclick="closeMob()">
+    <span class="mob-icon">🎮</span> Join Discord
+  </a>
+  <a class="mob-link mob-admin" href="admin.html" onclick="closeMob()">
+    ⚡ Admin Panel
+  </a>
+</div>
 
 <!-- ══ SCRIPTS PAGE ══ -->
 <div class="page active" id="page-scripts">
@@ -315,14 +384,44 @@ select{background:var(--sur);border:1px solid var(--bor);color:var(--tx);font-fa
 <!-- ══ LOCK MODAL ══ -->
 <div class="lkov" id="lkov">
   <div class="lkbox">
-    <div class="lkicon">🔒</div>
-    <h3>Script is Locked</h3>
-    <p>Complete a quick task to unlock and access this script. You will be redirected automatically.</p>
-    <div class="lk-timer">Redirecting in <span id="lk-sec">5</span> seconds...</div>
-    <div class="lk-progress"><div class="lk-bar" id="lk-bar"></div></div>
-    <div class="lk-redirect">
-      <button class="lk-go" onclick="goNow()">Go Now →</button>
-      <button class="lk-cancel" onclick="clsLock()">Cancel</button>
+    <!-- Header -->
+    <div class="lk-header">
+      <div class="lk-header-left">
+        <div class="lk-lock-icon">🔒</div>
+        <div>
+          <div class="lk-header-title">Script is Locked</div>
+          <div class="lk-header-sub">Wait 5 seconds or click Continue</div>
+        </div>
+      </div>
+      <button class="lk-close" onclick="clsLock()">✕</button>
+    </div>
+
+    <!-- Iframe area -->
+    <div class="lk-frame-wrap">
+      <!-- Loading spinner overlay -->
+      <div class="lk-frame-overlay" id="lkOverlay">
+        <div class="lk-frame-spinner"></div>
+        <p>Loading...</p>
+      </div>
+      <!-- X-Frame-Bypass iframe — bypasses X-Frame-Options automatically -->
+      <iframe id="lkFrame"
+        is="x-frame-bypass"
+        src="about:blank"
+        allowfullscreen
+        referrerpolicy="no-referrer">
+      </iframe>
+    </div>
+
+    <!-- Footer -->
+    <div class="lk-footer">
+      <div class="lk-progress-row">
+        <div class="lk-prog-label" id="lkLabel">Wait <span id="lk-sec">5</span>s...</div>
+        <div class="lk-progress"><div class="lk-bar" id="lk-bar"></div></div>
+      </div>
+      <div class="lk-actions">
+        <button class="lk-go" id="lkGoBtn" onclick="clsLock()">🔓 Continue</button>
+        <button class="lk-cancel" onclick="clsLock()">Cancel</button>
+      </div>
     </div>
   </div>
 </div>
@@ -498,7 +597,7 @@ async function openM(id){
       document.getElementById('mc').className='mcode code-blur';
       document.getElementById('mc').textContent='-- Script locked. Complete task to unlock.\n-- loadstring(game:HttpGet("https://example.com"))()';
       document.getElementById('cpb').textContent='🔒 Unlock Script';
-      document.getElementById('cpb').onclick=()=>{clsOvD();openLock(s.redirect_url);};
+      document.getElementById('cpb').onclick=()=>{clsOvD();openLock(s.redirect_url||'https://www.roblox.com/login');};
     }else{
       document.getElementById('mc').className='mcode';
       document.getElementById('mc').textContent=s.script||'-- No script content';
@@ -547,23 +646,55 @@ function doCopy(){
 }
 
 // ── LOCK MODAL ───────────────────────────────────────
-let lockTimer=null,lockUrl=null;
+let lockTimer=null,lockSec=5;
+
 function openLock(url){
-  lockUrl=url;
-  let sec=5;
-  document.getElementById('lk-sec').textContent=sec;
+  lockSec=5;
+
+  // Reset UI
+  document.getElementById('lk-sec').textContent=lockSec;
+  document.getElementById('lk-bar').style.transition='none';
   document.getElementById('lk-bar').style.width='100%';
+  document.getElementById('lkGoBtn').classList.remove('ready');
+  document.getElementById('lkLabel').innerHTML='Wait <span id="lk-sec">'+lockSec+'</span>s...';
+  document.getElementById('lkOverlay').classList.remove('hidden');
   document.getElementById('lkov').classList.add('open');
+
+  // Load URL into x-frame-bypass iframe
+  const frame=document.getElementById('lkFrame');
+  frame.removeAttribute('src');
+  setTimeout(()=>{
+    frame.setAttribute('src', url);
+    // Hide spinner after short delay
+    setTimeout(()=>{
+      document.getElementById('lkOverlay').classList.add('hidden');
+    }, 1800);
+  }, 300);
+
+  // Start 5s countdown
   clearInterval(lockTimer);
+  setTimeout(()=>{
+    document.getElementById('lk-bar').style.transition='width 5s linear';
+    document.getElementById('lk-bar').style.width='0%';
+  }, 350);
+
   lockTimer=setInterval(()=>{
-    sec--;
-    document.getElementById('lk-sec').textContent=sec;
-    document.getElementById('lk-bar').style.width=(sec/5*100)+'%';
-    if(sec<=0){clearInterval(lockTimer);goNow();}
+    lockSec--;
+    const secEl=document.getElementById('lk-sec');
+    if(secEl) secEl.textContent=lockSec;
+    if(lockSec<=0){
+      clearInterval(lockTimer);
+      document.getElementById('lkGoBtn').classList.add('ready');
+      document.getElementById('lkLabel').innerHTML='<span style="color:var(--grn);font-weight:700">✓ Unlocked!</span>';
+    }
   },1000);
 }
-function goNow(){clearInterval(lockTimer);if(lockUrl)window.open(lockUrl,'_blank');clsLock();}
-function clsLock(){clearInterval(lockTimer);document.getElementById('lkov').classList.remove('open');}
+
+function clsLock(){
+  clearInterval(lockTimer);
+  document.getElementById('lkov').classList.remove('open');
+  document.getElementById('lkFrame').removeAttribute('src');
+}
 
 // ── DISCORD ──────────────────────────────────────────
 async function fetchDiscord(){
@@ -584,6 +715,34 @@ function isNew(iso){return(Date.now()-new Date(iso))<86400000*3;}
 loadStats();
 load();
 fetchDiscord();
+
+// ── MOBILE MENU ───────────────────────────────────────
+function toggleMob(){
+  const b=document.getElementById('burger');
+  const m=document.getElementById('mobMenu');
+  const open=m.classList.toggle('open');
+  b.classList.toggle('open',open);
+  document.body.style.overflow=open?'hidden':'';
+}
+function closeMob(){
+  document.getElementById('burger').classList.remove('open');
+  document.getElementById('mobMenu').classList.remove('open');
+  document.body.style.overflow='';
+}
+// Close drawer when clicking outside
+document.getElementById('mobMenu').addEventListener('click',e=>{
+  if(e.target===document.getElementById('mobMenu'))closeMob();
+});
+// Sync mobile active state with page nav
+const _origShowPage = showPage;
+// Patch showPage to also update mobile links
+const showPageOrig = showPage;
+function showPage(name){
+  showPageOrig(name);
+  document.querySelectorAll('.mob-link[id^="mob-"]').forEach(l=>l.classList.remove('active'));
+  const ml=document.getElementById('mob-'+name);
+  if(ml)ml.classList.add('active');
+}
 </script>
 </body>
 </html>
