@@ -233,12 +233,13 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.9);backdrop-filt
         <hr style="border-color:var(--bor);margin:2rem 0">
         <h2>🔒 Lock Modal — Iframe URL</h2>
         <p style="color:var(--mt);font-size:.85rem;line-height:1.6;margin-bottom:1rem">
-          The URL that loads inside the lock modal iframe when users try to unlock a locked script.<br>
-          Default is the Roblox login page. You can change it to any URL (Linkvertise, your own page, etc).
+          The URL that loads inside the lock modal when users click a locked script.<br>
+          Any URL works — Roblox login, Linkvertise, Work.ink, your own page, etc.<br>
+          <strong style="color:var(--tx)">Redirects are always blocked</strong> — users can never be sent away from the iframe.
         </p>
         <div class="f">
           <label>Iframe URL</label>
-          <input type="text" id="iframeUrl" placeholder="https://www.roblox.com/login">
+          <input type="text" id="iframeUrl" placeholder="https://www.roblox.com/login  or  https://loot.link/xxxxx  or any URL">
           <div style="font-family:var(--mono);font-size:.7rem;color:var(--mt);margin-top:.35rem">
             Current: <span id="iframeUrlCurrent" style="color:var(--acc2)">loading...</span>
           </div>
