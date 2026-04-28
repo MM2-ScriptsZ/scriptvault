@@ -475,8 +475,7 @@ select{background:var(--sur);border:1px solid var(--bor);color:var(--tx);font-fa
         </iframe>
       </div>
       <div class="lk-frame-foot">
-        <span class="lk-frame-foot-note" id="lkFootNote">🔐 Secured by Roblox · <span id="lkDoneTimer" style="color:var(--acc2);font-weight:700"></span></span>
-        <button class="lk-btn-done" id="lkDoneBtn" onclick="clsLock()" disabled style="opacity:.35;cursor:not-allowed">✓ Done — Close</button>
+        <span class="lk-frame-foot-note">🔐 Secured · Use ✕ to close after verifying</span>
       </div>
     </div>
 
@@ -782,32 +781,10 @@ function showLkFrame(){
 function onLkFrameLoad(){
   setTimeout(()=>{
     document.getElementById('lkSpinner').classList.add('gone');
-    startDoneTimer();
   }, 500);
 }
 
-function startDoneTimer(){
-  let sec = 15; // user must stay on page for 15 seconds
-  const doneBtn  = document.getElementById('lkDoneBtn');
-  const doneNote = document.getElementById('lkDoneTimer');
-  doneBtn.disabled = true;
-  doneBtn.style.opacity = '.35';
-  doneBtn.style.cursor = 'not-allowed';
-  doneNote.textContent = 'Close available in '+sec+'s';
 
-  const t = setInterval(()=>{
-    sec--;
-    doneNote.textContent = sec > 0 ? 'Close available in '+sec+'s' : '';
-    if(sec <= 0){
-      clearInterval(t);
-      doneBtn.disabled = false;
-      doneBtn.style.opacity = '1';
-      doneBtn.style.cursor = 'pointer';
-      doneBtn.style.animation = 'fadeUp .4s ease both';
-      document.getElementById('lkFootNote').innerHTML = '🔐 Secured by Roblox · <span style="color:var(--grn);font-weight:700">✓ You may close</span>';
-    }
-  }, 1000);
-}
 
 function clsLock(){
   clearInterval(lockTimer);
